@@ -39,35 +39,48 @@ insertionSort([H|T], SORTED) :-
     insert(H, T1, FILLINHERE). 
 
 
-/* Comment to describe mergeSort… */
-mergeSort([], []).    % The empty list is sorted 
-mergeSort([X], [X]):-!.
-mergeSort(L, SL):- 
+/* mergeSort(L, SL): Given a list L, SL is a list of L's elements sorted.
+	mergeSort works recursively. It splits the list L in half and calls
+	mergeSort on each half. Then, it takes the two sorted lists and 
+	passes it into function merge, which goes through the lists, popping
+	off the smaller element of each, in order. */
+mergeSort([], []).		% The empty list is sorted 
+mergeSort([X], [X]):-!.	% A list with one element X is sorted.
+mergeSort(L, SL):- 		% Unsorted list L, when sorted, becomes sorted list SL
 	split_in_half(L, L1, L2), 
-	mergeSort(L1, FILLINHERE),
-	mergeSort(L2, S2),
-	merge(S1, FILLINHERE, SL). 
+	mergeSort(L1, S1),	% recursively merge sort first half L1 into S1
+	mergeSort(L2, S2),			% recursively merge sort second half L2 into S2
+	merge(S1, S2, SL). 	% Merge the two halves (S1 and S2) together into SL.
 
-/* Comment to describe split_in_half…*/
-intDiv(N,N1, R):- R is div(N,N1).
-split_in_half([], _, _):-!, fail.
-split_in_half([X],[],[X]). 
-split_in_half(L, L1, L2):- 
-	length(L,N),
-	intDiv(N,2,N1),
-	length(L1, FILLINHERE),
-	append(L1, L2, L). 
+/* split_in_half takes a list L and splits it into 
+	L1, the list of the first half, and L2, the list for the second half. */
+intDiv(N,N1, R):- R is div(N,N1).	% Divides N by N1 into result R, rounding down if there is a half remainder.
+split_in_half([], _, _):-!, fail.	% Given an empty list, you can't split it in half
+split_in_half([X],[],[X]). 	% A list of 1 element is split into an empty list L1 and
+							%	list L2 containing the 1 element.
+split_in_half(L, L1, L2):- 	% Given a list, L1 is the first half and L2 is the second half.
+	length(L,N),			% N is the length of the list L
+	intDiv(N,2,N1),			% N divided by 2 is N1
+	length(L1, N1),			% Length of L1 is N1
+	append(L1, L2, L). 		% L1 and L2 appended create L
 
-/* Comment describing merge(S1, S2, S) */
-merge([], L, L). % comment
-merge(L, [],L).  % comment 
-merge([H1|T1],[H2|T2],[H1| FILLINHERE]):-
-	H1 FILLINHERE  H2,
-	merge(T1,[H2|T2],T).
-
+/* merge(S1, S2, S): lists S1 and S2 can be merged to 
+	get the full sorted list S. S1 and S2 are each sorted. 
+	The first elements of S1 and S2 each are compared and
+	added to S in order from smallest to largest. When added
+	to S, the element is popped off the front of the list, 
+	and merge is called again on the remaining elements in
+	S1 and S2 to get the rest of S. */
+merge([], L, L). % empty list and L merge to create L
+merge(L, [],L).  % L and empty list merge to create L
+merge([H1|T1],[H2|T2],[H1|T]):-
+	H1 < H2,				% When H1 is less than H2, H1 is the start of the resulting merged list
+	merge(T1,[H2|T2],T). 	% Recursively merge tail of first half and full second half to get T, 
+							% 	the sorted rest of the list
 merge([H1|T1], [H2|T2], [H2|T]):-
-	FILLINHERE =< FILLINHERE
-	merge([H1|T1], T2, FILLINHERE).
+	H2 =< H1,				% When H2 is less than or equal to H1, H2 is at the start of the resulting merged list
+	merge([H1|T1], T2, T).	% Recursively merge full first half of list with tail of second half to get T,
+							%	the sorted rest of the list
    
 
 /* Comment describing split for quickSort */
