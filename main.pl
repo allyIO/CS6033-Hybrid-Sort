@@ -6,37 +6,48 @@ swap([H|T], [H|T1]):-
 	swap(T, T1). 
 
 
-/* Comment describing bubbleSort */
+/* 	
+ 	bubbleSort(L, SL): sorts list L into sorted list SL using     
+ 	the Bubble Sort algorithm. It repeatedly swaps adjacent       
+	elements that are out of order until the list is sorted.      */
+
 bubbleSort(L,SL):-
 	swap(L, L1), % at least one swap is needed
 	!, 
-	bubbleSort(L1, FILLINHERE). 
+	bubbleSort(L1, SL). % recursively sorting the partially sorted list
 bubbleSort(L, L). % here, the list is already sorted
 
-/* Comment describing ordered */
+/* 	ordered(): true if L is sorted in non-decreasing order.     */
+/* 	Helper function for insertionSort.                          */
 ordered([]).
 ordered([_X]).
 ordered([H1, H2|T]):-
 	H1 =< H2, 
 	ordered([H2|T]).
 
-/*Comment describing insert(E, SL, SLE) …*/
-/*Comment describing the 1st clause of insert …*/
+/* 	
+	insert(E, SL, SLE): inserts element E into the sorted list SL 
+ 	producing the new sorted list SLE. Used in insertionSort.     */
+
+/*	First clause: if E <= H, insert E before H in the list. */
 insert(X, [],[X]). 
 insert(E, [H|T], [E,H|T]):- 
 	ordered(T),
-FILLINHERE(E, H), 
+	E=<H, 	% condition to check if E is less than or equal to H
                         !. 
-/*Comment describing the 2nd clause of insert …*/
+/* 	Second clause: if E > H, keep H in place and insert E later. */
 insert(E, [H|T], [H|T1]):- 
 	ordered(T),
-    insert(E, T, FILLINHERE). 
+    insert(E, T, T1). % recursive call to insert E into the tail T to get T1
 
-/* Comment describing insertionSort */
+/*
+	 insertionSort(L, SL): sorts list L into SL using              
+ 	 the Insertion Sort algorithm. It recursively sorts the tail   
+	 and inserts the head into the correct position.               */
 insertionSort([], []). 
 insertionSort([H|T], SORTED) :- 
 	insertionSort(T, T1), 
-    insert(H, T1, FILLINHERE). 
+    insert(H, T1, SORTED).  % insert H into the sorted tail T1 to get SORTED
 
 
 /* mergeSort(L, SL): Given a list L, SL is a list of L's elements sorted.
@@ -55,7 +66,7 @@ mergeSort(L, SL):- 		% Unsorted list L, when sorted, becomes sorted list SL
 /* split_in_half takes a list L and splits it into 
 	L1, the list of the first half, and L2, the list for the second half. */
 intDiv(N,N1, R):- R is div(N,N1).	% Divides N by N1 into result R, rounding down if there is a half remainder.
-split_in_half([], _, _):-!, fail.	% Given an empty list, you can't split it in half
+split_in_half([], _, _):-!, fail.	% Given an empty list, you cant split it in half
 split_in_half([X],[],[X]). 	% A list of 1 element is split into an empty list L1 and
 							%	list L2 containing the 1 element.
 split_in_half(L, L1, L2):- 	% Given a list, L1 is the first half and L2 is the second half.
@@ -83,23 +94,28 @@ merge([H1|T1], [H2|T2], [H2|T]):-
 							%	the sorted rest of the list
    
 
-/* Comment describing split for quickSort */
+/* 	
+	split(X, LIST, SMALL, BIG): divides LIST into two lists:      
+  	SMALL contains elements <= X, BIG contains elements > X.      */
 split(_, [],[],[]). 
 split(X, [H|T], [H|SMALL], BIG):- 
 	H =< X, 
-	split(X, T, SMALL, FILLINHERE).    
+	split(X, T, SMALL, BIG).  % if H is less than or equal to X, put H in SMALL
 
 split(X, [H|T], SMALL, [H|BIG]):-
 	X =< H,
-	split(X, T, FILLINHERE, BIG). 
+	split(X, T, SMALL, BIG).  % if X is less than or equal to H, put H in BIG
 	
-/* Comment describing quickSort */
+/* 
+	quickSort(L, SL): sorts list L into sorted list SL. It selects
+	a pivot (head), splits remaining elements, and recursively
+	sorts the sublists.       */
 quickSort([], []).
 quickSort([H|T], LS):-
-	split(H, T, SMALL, FILLINHERE), 
-	quickSort(SMALL, S), 
-	quickSort(BIG, B), 
-	append(S, [H|B], FILLINHERE). 
+	split(H, T, SMALL, BIG), % split T into SMALL and BIG based on pivot H
+	quickSort(SMALL, S), % sort elements less than the pivot
+	quickSort(BIG, B), 	% sort elements greater than the pivot
+	append(S, [H|B], LS). % combining the lists to get the final sorted list
 
 
 /* Comment describing hybridSort */
