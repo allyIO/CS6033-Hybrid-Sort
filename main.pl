@@ -143,3 +143,74 @@ hybridSort(LIST, SMALLALG, BIGALG, THRESHOLD, SLIST):-
 		hybridSort(BIG, SMALLALG, BIGALG, THRESHOLD, S2),
 		append(S1, [P|S2], SLIST)
 	).
+
+% Declare dynamic predicates to store lists and timing results
+:- dynamic my_list/1.
+:- dynamic timing_result/3.
+
+/**
+ * randomList(N, LIST)
+ * Generates a LIST of N random integers between 1 and 1000.
+ */
+randomList(0, []).
+randomList(N, [H|T]) :-
+    N > 0,
+    random(1, 1000, H),
+    N1 is N - 1,
+    randomList(N1, T).
+
+/**
+ * setup_lists(Count)
+ * Generates and stores 'Count' random lists in the knowledge base.
+ * List lengths are also random (between 5 and 150).
+ */
+setup_lists(Count) :-
+    retractall(my_list(_)), % Clear any previously stored lists
+    format('Generating ~w random lists...~n', [Count]),
+    setup_lists_loop(Count).
+
+setup_lists_loop(0) :- !, format('List generation complete.~n').
+setup_lists_loop(Count) :-
+    Count > 0,
+    random(5, 150, ListLength),
+    randomList(ListLength, L),
+    assertz(my_list(L)),
+    NextCount is Count - 1,
+    setup_lists_loop(NextCount).
+
+/**
+ * time_goal(Goal, Time)
+ * Executes a given Goal and returns the CPU time taken.
+ */
+time_goal(Goal, Time) :-
+    statistics(cputime, T0),
+    call(Goal),
+    statistics(cputime, T1),
+    Time is T1 - T0.
+
+/**
+ * run_experiments
+ * Main predicate to run all sorting algorithms on all stored lists
+ * and store the timing results.
+ */
+run_experiments :-
+    retractall(timing_result(_,_,_)), % Clear old results
+    format('Running experiments...~n'),
+    Threshold = 16, % Picked as its a common threshold
+    my_list(L),
+    length(L, Len),
+    
+    % --- Time the 4 standard sorts ---
+    time_goal(bubbleSort(L, _), T1), assertz(timing_result(bubbleSort, Len, T1)),
+    time_goal(insertionSort(L, _), T2), assertz(timing_result(insertionSort, Len, T2)),
+    time_goal(mergeSort(L, _), T3), assertz(timing_result(mergeSort, Len, T3)),
+    time_goal(quickSort(L, _), T4), assertz(timing_result(quickSort, Len, T4)),
+
+    % --- Time the 4 hybrid sorts ---
+    time_goal(hybridSort(L, bubbleSort, mergeSort, Threshold, _), T5), assertz(timing_result(hybrid_bubble_merge, Len, T5)),
+    time_goal(hybridSort(L, bubbleSort, quickSort, Threshold, _), T6), assertz(timing_result(hybrid_bubble_quick, Len, T6)),
+    time_goal(hybridSort(L, insertionSort, mergeSort, Threshold, _), T7), assertz(timing_result(hybrid_insert_merge, Len, T7)),
+    time_goal(hybridSort(L, insertionSort, quickSort, Threshold, _), T8), assertz(timing_result(hybrid_insert_quick, Len, T8)),
+    
+    fail. % Force backtracking
+run_experiments :- format('Experiments finished.~nResults are stored in timing_result/3.~n').
