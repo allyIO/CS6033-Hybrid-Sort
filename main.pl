@@ -121,12 +121,25 @@ quickSort([H|T], LS):-
 /* Chooses between two algorithms based on the size of LIST
    If the length of LIST is less than or equal to THRESHOLD,
    it uses SMALLALG to sort the list. If the length of LIST
-   is larger than THRESHOLD, it uses BIGALG
+   is larger than THRESHOLD, then behave like BIGALG
 */
 hybridSort(LIST, SMALLALG, BIGALG, THRESHOLD, SLIST):-
 	length(LIST, N), N=< THRESHOLD,
-	SMALLALG(LIST, SLIST).		% When list size is smaller than or equal to threshold, use the smaller algorithm
+	call(SMALLALG, LIST, SLIST).		% When list size is smaller than or equal to threshold, use SMALLALG
+										% Had to be switched from "SMALLALG(LIST, SLIST)." to "call(SMALLALG, LIST, SLIST)."
 
 hybridSort(LIST, SMALLALG, BIGALG, THRESHOLD, SLIST):-
 	length(LIST, N), N > THRESHOLD,
-	call(BIGALG, LIST, SLIST).  % When list size is larger than threshold, call the larger algorithm
+	(
+		BIGALG = mergeSort -> 
+		split_in_half(LIST, L1, L2),	% Behaves like mergeSort; splits then merges
+		hybridSort(L1, SMALLALG, BIGALG, THRESHOLD, S1),
+		hybridSort(L2, SMALLALG, BIGALG, THRESHOLD, S2),
+		merge(S1, S2, SLIST);
+	 	BIGALG = quickSort ->
+		LIST = [P|T],					% Behaves like quickSort; picks pivot then splits	
+		split(P, T, SMALL, BIG),
+		hybridSort(SMALL, SMALLALG, BIGALG, THRESHOLD, S1),
+		hybridSort(BIG, SMALLALG, BIGALG, THRESHOLD, S2),
+		append(S1, [P|S2], SLIST)
+	).
