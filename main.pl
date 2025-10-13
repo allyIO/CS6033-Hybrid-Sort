@@ -118,11 +118,15 @@ quickSort([H|T], LS):-
 	append(S, [H|B], LS). % combining the lists to get the final sorted list
 
 
-/* Comment describing hybridSort */
+/* Chooses between two algorithms based on the size of LIST
+   If the length of LIST is less than or equal to THRESHOLD,
+   it uses SMALLALG to sort the list. If the length of LIST
+   is larger than THRESHOLD, it uses BIGALG
+*/
 hybridSort(LIST, SMALLALG, BIGALG, THRESHOLD, SLIST):-
 	length(LIST, N), N=< THRESHOLD,
-	SMALLALG(LIST, FILLINHERE).
+	SMALLALG(LIST, SLIST).		% When list size is smaller than or equal to threshold, use the smaller algorithm
 
 hybridSort(LIST, SMALLALG, BIGALG, THRESHOLD, SLIST):-
 	length(LIST, N), N > THRESHOLD,
-	FILLINHERE.  % Comment: fill in the behavior of BIGALG. 
+	call(BIGALG, LIST, SLIST).  % When list size is larger than threshold, call the larger algorithm
