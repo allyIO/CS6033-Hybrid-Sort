@@ -1,6 +1,6 @@
 /*swap the first two elements if they are not in order*/ 
 swap([X, Y|T], [Y, X | T]):-
-	Y =< X. 
+    Y < X.
 /*swap elements in the tail*/ 
 swap([H|T], [H|T1]):- 
 	swap(T, T1). 
@@ -196,21 +196,26 @@ time_goal(Goal, Time) :-
 run_experiments :-
     retractall(timing_result(_,_,_)), % Clear old results
     format('Running experiments...~n'),
-    Threshold = 16, % Picked as its a common threshold
-    my_list(L),
+    % This loop processes each list ONE time
+    forall(my_list(L),
+           run_sorts_on_list(L)
+          ),
+    format('Experiments finished.~nResults are stored in timing_result/3.~n').
+
+% Helper predicate to run all 8 sorts on a single list
+run_sorts_on_list(L) :-
     length(L, Len),
+    Threshold = 16,
     
-    % --- Time the 4 standard sorts ---
+    % Time the 4 standard sorts
     time_goal(bubbleSort(L, _), T1), assertz(timing_result(bubbleSort, Len, T1)),
     time_goal(insertionSort(L, _), T2), assertz(timing_result(insertionSort, Len, T2)),
     time_goal(mergeSort(L, _), T3), assertz(timing_result(mergeSort, Len, T3)),
     time_goal(quickSort(L, _), T4), assertz(timing_result(quickSort, Len, T4)),
 
-    % --- Time the 4 hybrid sorts ---
+    % Time the 4 hybrid sorts
     time_goal(hybridSort(L, bubbleSort, mergeSort, Threshold, _), T5), assertz(timing_result(hybrid_bubble_merge, Len, T5)),
     time_goal(hybridSort(L, bubbleSort, quickSort, Threshold, _), T6), assertz(timing_result(hybrid_bubble_quick, Len, T6)),
     time_goal(hybridSort(L, insertionSort, mergeSort, Threshold, _), T7), assertz(timing_result(hybrid_insert_merge, Len, T7)),
-    time_goal(hybridSort(L, insertionSort, quickSort, Threshold, _), T8), assertz(timing_result(hybrid_insert_quick, Len, T8)),
-    
-    fail. % Force backtracking
+    time_goal(hybridSort(L, insertionSort, quickSort, Threshold, _), T8), assertz(timing_result(hybrid_insert_quick, Len, T8)).
 run_experiments :- format('Experiments finished.~nResults are stored in timing_result/3.~n').
